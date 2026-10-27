@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Instagram-anslutning</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --card: #171a21;
+      --text: #f3f4f6;
+      --muted: #9aa3b2;
+      --border: #262b36;
+      --ok: #22c55e;
+      --err: #ef4444;
+      --accent: #f5c518;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f4f5f7;
+        --card: #ffffff;
+        --text: #15181e;
+        --muted: #5b6472;
+        --border: #e5e7eb;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 40px 32px 28px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    }
+    .badge {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      margin: 0 auto 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .badge.ok { background: var(--ok); }
+    .badge.err { background: var(--err); }
+    h1 { font-size: 1.5rem; margin: 0 0 10px; }
+    p { margin: 0 0 8px; }
+    .msg { color: var(--text); }
+    .sub { color: var(--muted); font-size: 0.95rem; }
+    .handle { font-weight: 600; }
+    .detail {
+      margin-top: 18px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      word-break: break-word;
+      display: none;
+    }
+    .footer {
+      margin-top: 26px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+    }
+    .footer b { color: var(--accent); font-weight: 700; }
+  </style>
+</head>
+<body>
+  <main class="card" role="status" aria-live="polite">
+    <div class="badge" id="badge">…</div>
+    <h1 id="title">Laddar…</h1>
+    <p class="msg" id="message"></p>
+    <p class="sub" id="sub"></p>
+    <div class="detail" id="detail"></div>
+    <div class="footer">ANSLUTNING VIA <b>NIGHTBLADE</b></div>
+  </main>
+
+  <script>
+    (function () {
+      var q = new URLSearchParams(location.search);
+      var status = q.get("status");
+      var username = q.get("username") || "";
+      var reason = q.get("reason") || "unknown";
+      var detail = q.get("detail") || "";
+
+      var ERROR_MESSAGES = {
+        denied: "Du nekade behörigheterna, eller så avbröts anslutningen hos Instagram.",
+        missing_params: "Länken saknade nödvändig information. Be om en ny anslutningslänk.",
+        state_invalid: "Säkerhetstoken är okänd eller redan använd. Be om en ny anslutningslänk.",
+        state_expired: "Anslutningslänken har gått ut. Be om en ny och försök igen.",
+        failed: "Något gick fel när kontot skulle anslutas. Försök igen, eller hör av dig till oss.",
+        unknown: "Ett oväntat fel inträffade. Försök igen, eller hör av dig till oss."
+      };
+
+      var badge = document.getElementById("badge");
+      var title = document.getElementById("title");
+      var message = document.getElementById("message");
+      var sub = document.getElementById("sub");
+      var detailBox = document.getElementById("detail");
+
+      if (status === "connected") {
+        badge.className = "badge ok";
+        badge.textContent = "✓";
+        title.textContent = "Kontot är anslutet!";
+        if (username) {
+          message.textContent = "";
+          var strong = document.createElement("span");
+          strong.className = "handle";
+          strong.textContent = "@" + username;
+          message.appendChild(strong);
+          message.appendChild(document.createTextNode(" är nu kopplat till publiceringssystemet."));
+        } else {
+          message.textContent = "Ditt Instagram-konto är nu kopplat till publiceringssystemet.";
+        }
+        sub.textContent = "Du kan stänga det här fönstret.";
+        document.title = "Kontot är anslutet";
+      } else {
+        badge.className = "badge err";
+        badge.textContent = "!";
+        title.textContent = "Det gick inte att ansluta";
+        message.textContent = ERROR_MESSAGES[reason] || ERROR_MESSAGES.unknown;
+        sub.textContent = "Du kan stänga fönstret och försöka igen.";
+        document.title = "Anslutningen misslyckades";
+        if (detail) {
+          // textContent only — never innerHTML — so reflected text can't inject markup.
+          detailBox.textContent = "Teknisk info: " + detail;
+          detailBox.style.display = "block";
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
